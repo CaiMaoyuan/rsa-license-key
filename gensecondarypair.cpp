@@ -1,7 +1,7 @@
 //g++ gensecondarypair.cpp -lcrypto++ -o gensecondarypair
 
 #include <string>
-using namespace std;
+//using namespace std;
 #include <crypto++/rsa.h>
 #include <crypto++/osrng.h>
 #include <crypto++/base64.h>
@@ -11,7 +11,7 @@ using namespace std;
 #include <crypto++/ripemd.h>
 using namespace CryptoPP;
 
-string GenKeyPair(AutoSeededRandomPool &rng, string pass)
+std::string GenKeyPair(AutoSeededRandomPool &rng, std::string pass)
 {
 	// InvertibleRSAFunction is used directly only because the private key
 	// won't actually be used to perform any cryptographic operation;
@@ -21,14 +21,14 @@ string GenKeyPair(AutoSeededRandomPool &rng, string pass)
 
 	// With the current version of Crypto++, MessageEnd() needs to be called
 	// explicitly because Base64Encoder doesn't flush its buffer on destruction.
-	string privKeyStr;
+	std::string privKeyStr;
 	StringSink privKeyStrSink(privKeyStr);
 	//Base64Encoder privkeysink(new FileSink("secondary-privkey.txt"));
 	privkey.DEREncode(privKeyStrSink);
 	privKeyStrSink.MessageEnd();
 	 
 	//Hash the pass phrase to create 128 bit key
-	string hashedPass;
+	std::string hashedPass;
 	RIPEMD128 hash;
 	StringSource(pass, true, new HashFilter(hash, new StringSink(hashedPass)));
 
@@ -40,7 +40,7 @@ string GenKeyPair(AutoSeededRandomPool &rng, string pass)
 	CFB_Mode<AES>::Encryption cfbEncryption((const unsigned char*)hashedPass.c_str(), hashedPass.length(), iv);
 	byte encPrivKey[privKeyStr.length()];
 	cfbEncryption.ProcessData(encPrivKey, (const byte*)privKeyStr.c_str(), privKeyStr.length());
-	string encPrivKeyStr((char *)encPrivKey, privKeyStr.length());
+	std::string encPrivKeyStr((char *)encPrivKey, privKeyStr.length());
 
 	//Save private key to file
 	StringSource encPrivKeySrc(encPrivKeyStr, true);
@@ -62,7 +62,7 @@ string GenKeyPair(AutoSeededRandomPool &rng, string pass)
 	pubkey.DEREncode(pubkeysink);
 	pubkeysink.MessageEnd();
 
-	string pubkeyStr;
+	std::string pubkeyStr;
 	Base64Encoder pubkeysink2(new StringSink(pubkeyStr));
 	pubkey.DEREncode(pubkeysink2);
 	pubkeysink2.MessageEnd();
@@ -70,10 +70,10 @@ string GenKeyPair(AutoSeededRandomPool &rng, string pass)
 	return pubkeyStr;
 }
 
-void SignSecondaryKey(AutoSeededRandomPool &rng, string strContents, string pass)
+void SignSecondaryKey(AutoSeededRandomPool &rng, std::string strContents, std::string pass)
 {
 	//Read private key
-	string encMasterPrivKey;
+	std::string encMasterPrivKey;
 	StringSink encMasterPrivKeySink(encMasterPrivKey);
 	FileSource file("master-privkey-enc.txt", true, new Base64Decoder);
 	file.CopyTo(encMasterPrivKeySink);
@@ -87,7 +87,7 @@ void SignSecondaryKey(AutoSeededRandomPool &rng, string strContents, string pass
 	bytesIv.Get(iv, AES::BLOCKSIZE);
 
 	//Hash the pass phrase to create 128 bit key
-	string hashedPass;
+	std::string hashedPass;
 	RIPEMD128 hash;
 	StringSource(pass, true, new HashFilter(hash, new StringSink(hashedPass)));
 
@@ -117,16 +117,16 @@ void SignSecondaryKey(AutoSeededRandomPool &rng, string strContents, string pass
 
 int main()
 {
-	cout << "Enter existing master key password" << endl;
-	string pass;
-	cin >> pass;
+	std::cout << "Enter existing master key password" << std::endl;
+	std::string pass;
+	std::cin >> pass;
 
-	cout << "Enter new secondary key password" << endl;
-	string pass2;
-	cin >> pass2;
+	std::cout << "Enter new secondary key password" << std::endl;
+	std::string pass2;
+	std::cin >> pass2;
 
 	AutoSeededRandomPool rng;
-	string pubkey = GenKeyPair(rng, pass2);
+	std::string pubkey = GenKeyPair(rng, pass2);
 	SignSecondaryKey(rng, pubkey, pass);
 }
 

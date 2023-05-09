@@ -6,7 +6,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
-using namespace std;
+//using namespace std;
 #include <crypto++/rsa.h>
 #include <crypto++/osrng.h>
 #include <crypto++/base64.h>
@@ -16,10 +16,10 @@ using namespace std;
 #include <crypto++/ripemd.h>
 using namespace CryptoPP;
 
-string SignLicense(AutoSeededRandomPool &rng, string strContents, string pass)
+std::string SignLicense(AutoSeededRandomPool &rng, std::string strContents, std::string pass)
 {
 	//Read private key
-	string encPrivKey;
+	std::string encPrivKey;
 	StringSink encPrivKeySink(encPrivKey);
 	FileSource file("secondary-privkey-enc.txt", true, new Base64Decoder);
 	file.CopyTo(encPrivKeySink);
@@ -33,7 +33,7 @@ string SignLicense(AutoSeededRandomPool &rng, string strContents, string pass)
 	bytesIv.Get(iv, AES::BLOCKSIZE);
 
 	//Hash the pass phrase to create 128 bit key
-	string hashedPass;
+	std::string hashedPass;
 	RIPEMD128 hash;
 	StringSource(pass, true, new HashFilter(hash, new StringSink(hashedPass)));
 
@@ -57,7 +57,7 @@ string SignLicense(AutoSeededRandomPool &rng, string strContents, string pass)
 		sbbSignature);
 
 	//Save result
-	string out;
+	std::string out;
 	Base64Encoder enc(new StringSink(out));
 	enc.Put(sbbSignature, sbbSignature.size());
 	enc.MessageEnd();
@@ -76,9 +76,9 @@ void myReplace(std::string& str, const std::string& oldStr, const std::string& n
 	}
 }
 
-string SerialiseKeyPairs(vector<vector<std::string> > &info)
+std::string SerialiseKeyPairs(std::vector<std::vector<std::string> > &info)
 {
-	string out;
+	std::string out;
 	for(unsigned int pairNum = 0;pairNum < info.size();pairNum++)
 	{
 		out.append("<data k=\"");
@@ -93,12 +93,12 @@ string SerialiseKeyPairs(vector<vector<std::string> > &info)
 	return out;
 }
 
-string GetFileContent(string filename)
+std::string GetFileContent(std::string filename)
 {
-	ifstream fi(filename.c_str());
+	std::ifstream fi(filename.c_str());
 	if(!fi)
 	{
-		runtime_error("Could not open file");
+		std::runtime_error("Could not open file");
 	}
 
     // get length of file:
@@ -106,7 +106,7 @@ string GetFileContent(string filename)
     int length = fi.tellg();
     fi.seekg (0, fi.beg);
 
-	stringstream test;
+	std::stringstream test;
 	test << fi.rdbuf();
 
 	return test.str();
@@ -114,13 +114,13 @@ string GetFileContent(string filename)
 
 int main()
 {
-	cout << "Enter existing secondary key password" << endl;
-	string pass;
-	cin >> pass;
+	std::cout << "Enter existing secondary key password" << std::endl;
+	std::string pass;
+	std::cin >> pass;
 
-	vector<vector<std::string> > info;
+	std::vector<std::vector<std::string> > info;
 	
-	vector<string> pair;
+	std::vector<std::string> pair;
 	pair.push_back("licensee");
 	pair.push_back("John Doe, Big Institute, Belgium");
 	info.push_back(pair);
@@ -130,13 +130,13 @@ int main()
 	pair.push_back("feature1, feature2");
 	info.push_back(pair);
 
-	string serialisedInfo = SerialiseKeyPairs(info);
+	std::string serialisedInfo = SerialiseKeyPairs(info);
 
 	AutoSeededRandomPool rng;
-	string infoSig = SignLicense(rng, serialisedInfo, pass);
+	std::string infoSig = SignLicense(rng, serialisedInfo, pass);
 
 	//Encode as xml
-	string xml="<license>";
+	std::string xml="<license>";
 	xml.append("<info>");
 	xml.append(serialisedInfo);
 	xml.append("</info>");
@@ -153,7 +153,7 @@ int main()
 	
 	//cout << xml << endl;
 
-	ofstream out("xmllicense.xml");
+	std::ofstream out("xmllicense.xml");
 	out << xml;
 }
 

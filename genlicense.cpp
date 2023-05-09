@@ -1,7 +1,7 @@
 //g++ genlicense.cpp -lcrypto++ -o genlicense
 
 #include <string>
-using namespace std;
+//using namespace std;
 #include <crypto++/rsa.h>
 #include <crypto++/osrng.h>
 #include <crypto++/base64.h>
@@ -11,11 +11,11 @@ using namespace std;
 #include <crypto++/ripemd.h>
 using namespace CryptoPP;
 
-void SignLicense(AutoSeededRandomPool &rng, string strContents, string pass)
+void SignLicense(AutoSeededRandomPool &rng, std::string strContents, std::string pass)
 {
 
 	//Read private key
-	string encPrivKey;
+	std::string encPrivKey;
 	StringSink encPrivKeySink(encPrivKey);
 	FileSource file("secondary-privkey-enc.txt", true, new Base64Decoder);
 	file.CopyTo(encPrivKeySink);
@@ -29,7 +29,7 @@ void SignLicense(AutoSeededRandomPool &rng, string strContents, string pass)
 	bytesIv.Get(iv, AES::BLOCKSIZE);
 
 	//Hash the pass phrase to create 128 bit key
-	string hashedPass;
+	std::string hashedPass;
 	RIPEMD128 hash;
 	StringSource(pass, true, new HashFilter(hash, new StringSink(hashedPass)));
 
@@ -64,9 +64,9 @@ void SignLicense(AutoSeededRandomPool &rng, string strContents, string pass)
 
 int main()
 {
-	cout << "Enter existing secondary key password" << endl;
-	string pass;
-	cin >> pass;
+	std::cout << "Enter existing secondary key password" << std::endl;
+	std::string pass;
+	std::cin >> pass;
 
 	AutoSeededRandomPool rng;
 	SignLicense(rng, "Licensed to BOB", pass);
